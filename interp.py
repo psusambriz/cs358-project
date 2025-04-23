@@ -27,7 +27,7 @@ class Div:
 
 @dataclass
 class Neg:
-    opperand: any
+    operand: any
 
 @dataclass
 class And:
@@ -121,7 +121,7 @@ def eval(expr,env={}):
         return l // r
     
     elif isinstance(expr,Neg):
-        val = eval(expr.opperand,env)
+        val = eval(expr.operand,env)
         if not isinstance(val,int):
             raise TypeError("Neg requires an integer.")
         return -val
@@ -146,6 +146,25 @@ def eval(expr,env={}):
             return eval(expr.then_b,env)
         else:
             return eval(expr.else_b,env)
+    
+    elif isinstance(expr,StrLit):
+        return expr.value
+    
+    elif isinstance(expr,StrConcat):
+        l = eval(expr.left,env)
+        r = eval(expr.right,env)
+        if not isinstance(l,str) or not isinstance(r,str):
+            raise TypeError("StrConcat requires string operands.")
+        return l + r
+    
+    elif isinstance(expr,StrReplace):
+        original = eval(expr.og,env)
+        target = eval(expr.target,env)
+        replacement = eval(expr.replacement,env)
+        if not all(isinstance(v,str) for v in [original,target,replacemet]):
+            raise TypeError("StrReplace requires all operands to be strings.")
+        return original.replace(target,replacement,1)
+
         
     else:
         raise NotImplementedError(f"Unknown expression type: {type(expr)}.")
@@ -154,5 +173,7 @@ def eval(expr,env={}):
 def run(expr):
     result = eval(expr)
     print(result)
+
+run(StrLit("hello"))
 
         
