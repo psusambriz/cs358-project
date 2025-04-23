@@ -85,15 +85,6 @@ class StrReplace:
     target: any
     replacement: any
 
-# interprator
-
-def eval(expr,env={}):
-    raise NotImplementedError("Eval not yet implemented")
-
-def run(expr):
-    result = eval(expr)
-    print(result)
-
 # building the interpretor
 def eval(expr,env={}):
     if isinstance(expr, Lit):
@@ -120,29 +111,48 @@ def eval(expr,env={}):
             raise TypeError("Mul requires integer operands.")
         return l * r
     
+    elif isinstance(expr,Div):
+        l = eval(expr.left,env)
+        r = eval(expr.right,env)
+        if not isinstance(l,int) or not isinstance(r,int):
+            raise TypeError("Div requires integer operands.")
+        if r == 0:
+            raise ZeroDivisionError("Cannot divide by zero.")
+        return l // r
+    
+    elif isinstance(expr,Neg):
+        val = eval(expr.opperand,env)
+        if not isinstance(val,int):
+            raise TypeError("Neg requires an integer.")
+        return -val
+
     elif isinstance(expr,Eq):
         l = eval(expr.left,env)
         r = eval(expr.right,env)
         return l == r
     
     elif isinstance(expr,Lt):
-        l - eval(expr.left,env)
-        r = eval(expr.left,env)
+        l = eval(expr.left,env)
+        r = eval(expr.right,env)
         if not isinstance(l,int) or not isinstance(r,int):
-            raise TypeError("Lt requires integer operands")
+            raise TypeError("Lt requires integer operands.")
         return l < r
         
     elif isinstance(expr,If):
         cond = eval(expr.conditional,env)
         if not isinstance(cond,bool):
-            raise TypeError("If condition needs to be a boolean")
+            raise TypeError("If condition needs to be a boolean.")
         if cond:
             return eval(expr.then_b,env)
         else:
             return eval(expr.else_b,env)
         
     else:
-        raise NotImplementedError(f"Unknown expression type: {type(expr)}")
-    
+        raise NotImplementedError(f"Unknown expression type: {type(expr)}.")
+
+# run  
+def run(expr):
+    result = eval(expr)
+    print(result)
 
         
