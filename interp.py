@@ -104,3 +104,19 @@ def eval(expr,env={}):
         r = eval(expr.left,env)
         if not isinstance(l,int) or not isinstance(r,int):
             raise TypeError("Lt requires integer operands")
+        return l < r
+        
+    elif isinstance(expr,If):
+        cond = eval(expr.conditional,env)
+        if not isinstance(cond,bool):
+            raise TypeError("If condition needs to be a boolean")
+        if cond:
+            return eval(expr.then_b,env)
+        else:
+            return eval(expr.else_b,env)
+        
+    else:
+        raise NotImplementedError(f"Unknown expression type: {type(expr)}")
+    
+
+        
