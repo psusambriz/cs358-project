@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+# classes
 @dataclass
 class Lit:
     value: any
@@ -67,6 +68,31 @@ class If:
     conditional: any
     then_b: any
     else_b: any
+
+# string class
+@dataclass
+class StrLit:
+    value: str
+
+@dataclass
+class StrConcat:
+    left: any
+    right: any
+
+@dataclass
+class StrReplace:
+    og: any
+    target: any
+    replacement: any
+
+# interprator
+
+def eval(expr,env={}):
+    raise NotImplementedError("Eval not yet implemented")
+
+def run(expr):
+    result = eval(expr)
+    print(result)
 
 # building the interpretor
 def eval(expr,env={}):
