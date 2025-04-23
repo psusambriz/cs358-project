@@ -26,3 +26,26 @@ You need to implement:
 🎯 DSL Domain Choices
 
 You can pick from the pre-approved list (no permission needed), which includes:
+
+🗂️ File Requirements
+	•	A single file: project/interp.py
+	•	It should include:
+	•	Your AST node classes/functions
+	•	An eval() function for interpreting each expression
+	•	A run() function to show the result (print, save, or display)
+	•	A comment block at the bottom explaining your domain and how it’s used
+	•	A few test cases using your AST + DSL, each wrapped in a run()
+
+📌 Key Constraints
+	•	Python only. Use functional-style interpretation (no OOP style).
+	•	Dynamically typed language: values can be int, bool, or your DSL type.
+	•	You must handle invalid inputs by raising exceptions (e.g., divide-by-zero, wrong types).
+	•	Output types can vary: for example, strings are printed, images might open in a viewer, etc.
+	•	Include any non-standard Python packages in a comment at the top.
+
+⸻
+
+📊 Grading
+	•	50% for core interpreter (AST + eval)
+	•	50% for DSL extension (types + ops + working demo)
+	•	Syntax errors = big deduction, so make sure the code runs
