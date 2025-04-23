@@ -161,7 +161,7 @@ def eval(expr,env={}):
         original = eval(expr.og,env)
         target = eval(expr.target,env)
         replacement = eval(expr.replacement,env)
-        if not all(isinstance(v,str) for v in [original,target,replacemet]):
+        if not all(isinstance(v,str) for v in [original,target,replacement]):
             raise TypeError("StrReplace requires all operands to be strings.")
         return original.replace(target,replacement,1)
 
@@ -174,6 +174,8 @@ def run(expr):
     result = eval(expr)
     print(result)
 
+# testing string 
 run(StrLit("hello"))
+
 
         
