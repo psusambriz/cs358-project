@@ -1,181 +1,239 @@
 from dataclasses import dataclass
+from typing import Union, Dict, Any
 
-# classes
-@dataclass
+# expression type defs.
+Expr = Union['Add', 'Sub', 'Mul', 'Div', 'Neg', 'Lit', 'Let', 'Name', 'Eq', 'Lt', 'If', 
+             'StrLit', 'StrConcat', 'StrReplace', 'And', 'Or', 'Not']
+
+# lit 
+@dataclass(frozen=True)
 class Lit:
-    value: any
+    value: Any
 
-@dataclass
+# add
+@dataclass(frozen=True)
 class Add:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# sub
+@dataclass(frozen=True)
 class Sub:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# mul
+@dataclass(frozen=True)
 class Mul:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# div
+@dataclass(frozen=True)
 class Div:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# neg
+@dataclass(frozen=True)
 class Neg:
-    operand: any
+    operand: Expr
 
-@dataclass
+# and
+@dataclass(frozen=True)
 class And:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# or
+@dataclass(frozen=True)
 class Or:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# not
+@dataclass(frozen=True)
 class Not:
-    operand: any
+    operand: Expr
 
-@dataclass
+# let
+@dataclass(frozen=True)
 class Let:
     name: str
-    value_expr: any
-    body_expr: any
+    value_expr: Expr
+    body_expr: Expr
 
-@dataclass
+# name
+@dataclass(frozen=True)
 class Name:
     name: str
 
-@dataclass
+# eq
+@dataclass(frozen=True)
 class Eq:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# lt
+@dataclass(frozen=True)
 class Lt:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass 
+# if
+@dataclass(frozen=True)
 class If:
-    conditional: any
-    then_b: any
-    else_b: any
+    conditional: Expr
+    then_b: Expr
+    else_b: Expr
 
-# string class
-@dataclass
+# strlit
+@dataclass(frozen=True)
 class StrLit:
     value: str
 
-@dataclass
+# strconcat
+@dataclass(frozen=True)
 class StrConcat:
-    left: any
-    right: any
+    left: Expr
+    right: Expr
 
-@dataclass
+# strrplace
+@dataclass(frozen=True)
 class StrReplace:
-    og: any
-    target: any
-    replacement: any
+    og: Expr
+    target: Expr
+    replacement: Expr
 
-# building the interpretor
-def eval(expr,env={}):
+# eval
+def eval(expr: Expr, env: Dict[str, Any] = None) -> Any:
+    if env is None:
+        env = {}
+
     if isinstance(expr, Lit):
         return expr.value
-    
+
+    elif isinstance(expr, Name):
+        if expr.name in env:
+            return env[expr.name]
+        else:
+            raise NameError(f"Name '{expr.name}' not found in environment.")
+
     elif isinstance(expr, Add):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,int) or not isinstance(r,int):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) is not int or type(r) is not int:
             raise TypeError("Add requires integer operands.")
         return l + r
-    
-    elif isinstance(expr,Sub):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,int) or not isinstance(r,int):
+
+    elif isinstance(expr, Sub):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) is not int or type(r) is not int:
             raise TypeError("Sub requires integer operands.")
         return l - r
-    
-    elif isinstance(expr,Mul):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,int) or not isinstance(r,int):
+
+    elif isinstance(expr, Mul):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) is not int or type(r) is not int:
             raise TypeError("Mul requires integer operands.")
         return l * r
-    
-    elif isinstance(expr,Div):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,int) or not isinstance(r,int):
+
+    elif isinstance(expr, Div):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) is not int or type(r) is not int:
             raise TypeError("Div requires integer operands.")
         if r == 0:
             raise ZeroDivisionError("Cannot divide by zero.")
         return l // r
-    
-    elif isinstance(expr,Neg):
-        val = eval(expr.operand,env)
-        if not isinstance(val,int):
+
+    elif isinstance(expr, Neg):
+        val = eval(expr.operand, env)
+        if type(val) is not int:
             raise TypeError("Neg requires an integer.")
         return -val
 
-    elif isinstance(expr,Eq):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
+    elif isinstance(expr, Eq):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) != type(r):
+            return False
         return l == r
-    
-    elif isinstance(expr,Lt):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,int) or not isinstance(r,int):
+
+    elif isinstance(expr, Lt):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if type(l) is not int or type(r) is not int:
             raise TypeError("Lt requires integer operands.")
         return l < r
-        
-    elif isinstance(expr,If):
-        cond = eval(expr.conditional,env)
-        if not isinstance(cond,bool):
+
+    elif isinstance(expr, If):
+        cond = eval(expr.conditional, env)
+        if not isinstance(cond, bool):
             raise TypeError("If condition needs to be a boolean.")
         if cond:
-            return eval(expr.then_b,env)
+            return eval(expr.then_b, env)
         else:
-            return eval(expr.else_b,env)
-    
-    elif isinstance(expr,StrLit):
+            return eval(expr.else_b, env)
+
+    elif isinstance(expr, Let):
+        val = eval(expr.value_expr, env)
+        new_env = env.copy()
+        new_env[expr.name] = val
+        return eval(expr.body_expr, new_env)
+
+    elif isinstance(expr, And):
+        l = eval(expr.left, env)
+        if not isinstance(l, bool):
+            raise TypeError("And requires boolean operands.")
+        if not l:
+            return False
+        r = eval(expr.right, env)
+        if not isinstance(r, bool):
+            raise TypeError("And requires boolean operands.")
+        return r
+
+    elif isinstance(expr, Or):
+        l = eval(expr.left, env)
+        if not isinstance(l, bool):
+            raise TypeError("Or requires boolean operands.")
+        if l:
+            return True
+        r = eval(expr.right, env)
+        if not isinstance(r, bool):
+            raise TypeError("Or requires boolean operands.")
+        return r
+
+    elif isinstance(expr, Not):
+        val = eval(expr.operand, env)
+        if not isinstance(val, bool):
+            raise TypeError("Not requires a boolean operand.")
+        return not val
+
+    elif isinstance(expr, StrLit):
         return expr.value
-    
-    elif isinstance(expr,StrConcat):
-        l = eval(expr.left,env)
-        r = eval(expr.right,env)
-        if not isinstance(l,str) or not isinstance(r,str):
+
+    elif isinstance(expr, StrConcat):
+        l = eval(expr.left, env)
+        r = eval(expr.right, env)
+        if not isinstance(l, str) or not isinstance(r, str):
             raise TypeError("StrConcat requires string operands.")
         return l + r
-    
-    elif isinstance(expr,StrReplace):
-        original = eval(expr.og,env)
-        target = eval(expr.target,env)
-        replacement = eval(expr.replacement,env)
-        if not all(isinstance(v,str) for v in [original,target,replacement]):
-            raise TypeError("StrReplace requires all operands to be strings.")
-        return original.replace(target,replacement,1)
 
-        
+    elif isinstance(expr, StrReplace):
+        original = eval(expr.og, env)
+        target = eval(expr.target, env)
+        replacement = eval(expr.replacement, env)
+        if not all(isinstance(v, str) for v in [original, target, replacement]):
+            raise TypeError("StrReplace requires all operands to be strings.")
+        return original.replace(target, replacement, 1)
+
     else:
         raise NotImplementedError(f"Unknown expression type: {type(expr)}.")
 
-# run  
-def run(expr):
+# run
+def run(expr: Expr) -> None:
     result = eval(expr)
     print(result)
-
-# testing string 
-run(StrLit("hello"))
-
-
-        
