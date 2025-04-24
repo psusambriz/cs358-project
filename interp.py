@@ -237,3 +237,13 @@ def eval(expr: Expr, env: Dict[str, Any] = None) -> Any:
 def run(expr: Expr) -> None:
     result = eval(expr)
     print(result)
+
+# This interpreter supports string operations
+# as part of a DSL feature set. The operations include:
+
+# 'StrLit' : represents a string literal
+# 'StrConcat' : performs string concatenation
+# 'StrReplace' : replace first occurance of a substring in a string
+
+# These extensions allow the interpreter to do simple string 
+# manipulations.
