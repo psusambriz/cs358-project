@@ -247,3 +247,10 @@ def run(expr: Expr) -> None:
 
 # These extensions allow the interpreter to do simple string 
 # manipulations.
+# testing the domain string operations
+
+run(StrLit("hello world!")) # prints: hello world!
+
+run(StrConcat(StrLit("hello "),StrLit("world!"))) # prints: hello world!
+
+run(StrReplace(StrLit("hello world!"), StrLit("world!"), StrLit("hello!"))) # prints: hello hello!
