@@ -3,7 +3,7 @@ from typing import Union, Dict, Any
 
 # expression type defs.
 Expr = Union['Add', 'Sub', 'Mul', 'Div', 'Neg', 'Lit', 'Let', 'Name', 'Eq', 'Lt', 'If', 
-             'StrLit', 'StrConcat', 'StrReplace', 'And', 'Or', 'Not']
+             'StrLit', 'StrConcat', 'StrReplace', 'And', 'Or', 'Not', 'LetFun', 'App']
 
 # lit 
 @dataclass(frozen=True)
@@ -104,6 +104,20 @@ class StrReplace:
     og: Expr
     target: Expr
     replacement: Expr
+
+# letfun
+@dataclass
+class LetFun:
+    fun_name: str
+    param_name: str
+    body_expr: Expr
+    in_expr: Expr
+
+@dataclass
+class App:
+    fun_expr: Expr
+    arg_expr: Expr
+
 
 # eval
 def eval(expr: Expr, env: Dict[str, Any] = None) -> Any:
@@ -229,6 +243,22 @@ def eval(expr: Expr, env: Dict[str, Any] = None) -> Any:
         if not all(isinstance(v, str) for v in [original, target, replacement]):
             raise TypeError("StrReplace requires all operands to be strings.")
         return original.replace(target, replacement, 1)
+    
+    elif isinstance(expr,LetFun):
+        closure = (expr.param_name,expr.body_expr,env.copy())
+        new_env = env.copy()
+        new_env[expr.fun_name] = closure
+        return eval(expr.in_expr,new_env)
+    
+    elif isinstance(expr,App):
+        closure = eval(expr.fun_expr,env)
+        if not isinstance(closure,tuple) or len(closure) != 3:
+            raise TypeError("Trying to apply a non-function.")
+        param_name,body_expr,closure_env = closure
+        arg_val = eval(expr.arg_expr,env)
+        new_env = closure_env.copy()
+        new_env[param_name] = arg_val
+        return eval(body_expr,new_env)
 
     else:
         raise NotImplementedError(f"Unknown expression type: {type(expr)}.")
@@ -247,6 +277,7 @@ def run(expr: Expr) -> None:
 
 # These extensions allow the interpreter to do simple string 
 # manipulations.
+
 # testing the domain string operations
 
 run(StrLit("hello world!")) # prints: hello world!

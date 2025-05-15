@@ -1,0 +1,33 @@
+?start: expr
+
+?expr: expr "+" expr -> add
+    | expr "-" expr -> sub
+    | expr "*" expr -> mul
+    | expr "/" expr -> div
+    | "-" expr -> neg
+    | expr "&&" expr -> and
+    | expr "||" expr -> or
+    | "!" expr -> not
+    | expr "==" expr -> eq
+    | expr "<" expr -> lt
+    | "if" expr "then" expr "else" expr -> if
+    | "let" ID "=" expr "in" expr "end" -> let
+    | "letfun" ID "(" ID ")" "=" expr "in" expr "end" -> letfun
+    | expr "(" expr ")" -> app
+    | expr "++" expr -> strconcat
+    | expr ".replace(" STRING "," STRING ")" -> strreplace
+    | atom
+
+?atom: NUMBER ->number
+    | STRING -> string
+    | "true" -> true
+    | "false" -> false
+    | ID -> var
+    | "(" expr ")"
+
+
+%import common.CNAME -> ID
+%import common.NUMBER
+%import common.ESCAPED_STRING -> STRING
+%import common.WS
+%ignore WS
