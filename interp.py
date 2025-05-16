@@ -1,91 +1,107 @@
 from dataclasses import dataclass
-from typing import Union, Dict, Any
+from typing import Union, Any
 
 # expression type defs.
 Expr = Union['Add', 'Sub', 'Mul', 'Div', 'Neg', 'Lit', 'Let', 'Name', 'Eq', 'Lt', 'If', 
-             'StrLit', 'StrConcat', 'StrReplace', 'And', 'Or', 'Not', 'LetFun', 'App']
+             'StrLit', 'StrConcat', 'StrReplace', 'And', 'Or', 'Not', 'Letfun', 'App']
 
 # lit 
-@dataclass(frozen=True)
-class Lit:
-    value: Any
+@dataclass
+class Lit: # recheck
+    value: Union[int,bool,str]
+    def __str__(self): return repr(self.value) if isinstance(self.value, str) else str(self.value)
 
 # add
-@dataclass(frozen=True)
-class Add:
+@dataclass
+class Add: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"{self.left} + {self.right}"
 
 # sub
-@dataclass(frozen=True)
-class Sub:
+@dataclass
+class Sub: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"{self.left} - {self.right}"
 
 # mul
-@dataclass(frozen=True)
-class Mul:
+@dataclass
+class Mul: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"({self.left} * {self.right})"
 
 # div
-@dataclass(frozen=True)
-class Div:
+@dataclass
+class Div: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"({self.left} / {self.right})"
 
 # neg
-@dataclass(frozen=True)
-class Neg:
-    operand: Expr
+@dataclass
+class Neg: # done
+    subexpr: Any
+    def __str__(self): return f"-{self.subexpr}"
 
 # and
-@dataclass(frozen=True)
-class And:
+@dataclass
+class And: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"({self.left} and {self.right})"
 
 # or
-@dataclass(frozen=True)
-class Or:
+@dataclass
+class Or: # done
     left: Expr
     right: Expr
+    def __str__(self): return f"({self.left} or {self.right})"
 
 # not
-@dataclass(frozen=True)
-class Not:
-    operand: Expr
+@dataclass
+class Not: # done
+    subexpr: Any
+    def __str__(self): return f"(not {self.subexpr})"
 
 # let
-@dataclass(frozen=True)
-class Let:
+@dataclass
+class Let: # done
     name: str
-    value_expr: Expr
-    body_expr: Expr
+    value_expr: Any
+    body_expr: Any
+    def __str__(self): return f"(let {self.name} = {self.value_expr} in {self.body_expr})"
 
 # name
-@dataclass(frozen=True)
-class Name:
+@dataclass
+class Name: # done
     name: str
+    def __str__(self): return self.name
+
 
 # eq
-@dataclass(frozen=True)
-class Eq:
-    left: Expr
-    right: Expr
+@dataclass
+class Eq: # done
+    left: Any
+    right: Any
+    def __str__(self): return f"({self.left} == {self.right})"
 
 # lt
-@dataclass(frozen=True)
-class Lt:
-    left: Expr
-    right: Expr
+@dataclass
+class Lt: # done
+    left: Any
+    right: Any
+    def __str__(self): return f"({self.left} < {self.right})"
 
 # if
-@dataclass(frozen=True)
-class If:
-    conditional: Expr
-    then_b: Expr
-    else_b: Expr
+@dataclass
+class If: # done
+    cond: Any
+    then: Any
+    else_: Any
+    def __str__(self): return f"(if {self.cond} then {self.then} else {self.else_})"
+
 
 # strlit
 @dataclass(frozen=True)
@@ -93,180 +109,155 @@ class StrLit:
     value: str
 
 # strconcat
-@dataclass(frozen=True)
-class StrConcat:
-    left: Expr
-    right: Expr
+class StrConcat: # done
+    left: Any
+    right: Any
+    def __str__(self): return f"({self.left} ++ {self.right})"
 
 # strrplace
 @dataclass(frozen=True)
 class StrReplace:
-    og: Expr
-    target: Expr
-    replacement: Expr
+    name: str
+    param: str
+    funbody: Any
+    inexpr: Any
+    def __str__(self): return f"replace({self.target}, {self.old}, {self.new})"
 
 # letfun
 @dataclass
-class LetFun:
-    fun_name: str
-    param_name: str
-    body_expr: Expr
-    in_expr: Expr
+class Letfun: # done
+    name: str
+    param: str
+    body_expr: Any
+    in_expr: Any
+    def __str__(self): return f"(letfun {self.name}({self.param}) = {self.body_expr} in {self.in_expr})"
 
 @dataclass
-class App:
-    fun_expr: Expr
-    arg_expr: Expr
+class App: # done
+    fun_expr: Any
+    arg_expr: Any
+    def __str__(self): return f"{self.fun_expr}({self.arg_expr})"
 
+Env = tuple[tuple[str,Any], ...]
+
+class EvalError(Exception):
+    pass
 
 # eval
-def eval(expr: Expr, env: Dict[str, Any] = None) -> Any:
-    if env is None:
-        env = {}
+def eval(expr: Any, env: Env = None) -> Any:
+    env = env or {}
+    match expr:
+        case Add(l,r):
+            lv,rv = eval(l,env), eval(r,env)
+            if type(lv) == int and type(rv) == int: return lv + rv
+            raise EvalError("add requires integers")
+        case Sub(l,r):
+            lv,rv = eval(l,env), eval(r,env)
+            if type(lv) == int and type(rv) == int: return lv - rv
+            raise EvalError("sub requires integers")
+        case Mul(l,r):
+            lv, rv = eval(l, env), eval(r, env)
+            if type(lv) == int and type(rv) == int: return lv * rv
+            raise EvalError("mul requires integers")
+        case Div(l, r):
+            lv, rv = eval(l, env), eval(r, env)
+            if not (type(lv) == int and type(rv) == int):
+                raise EvalError("div requires integers")
+            if rv == 0: raise EvalError("division by zero")
+            return lv // rv
+        case Neg(e):
+            ev = eval(e, env)
+            if type(ev) == int: return -ev
+            raise EvalError("neg requires integer")
+        case Lit(v): return v
+        case Let(name, de, body):
+            val = eval(de, env)
+            new_env = ((name, val),) + env
+            return eval(body, new_env)
+        case Name(n):
+            for var, val in env:
+                if var == n: return val
+            raise EvalError(f"unbound variable {n}")
+        case Eq(l, r):
+            lv, rv = eval(l, env), eval(r, env)
+            # For Milestone 1, if types are different, they are unequal.
+            # Eq handles string comparison naturally if both are strings.
+            if type(lv) != type(rv): return False
+            return lv == rv
+        case Lt(l, r):
+            lv, rv = eval(l, env), eval(r, env)
+            if type(lv) == int and type(rv) == int: return lv < rv
+            raise EvalError("lt requires integers")
+        case If(c, t, e):
+            cv = eval(c, env)
+            if not isinstance(cv, bool): raise EvalError("the If condition must be boolean")
+            return eval(t, env) if cv else eval(e, env)
+        case And(l, r):
+            lv = eval(l, env)
+            if not isinstance(lv, bool): raise EvalError("and requires booleans")
+            if not lv: return False # Short-circuiting
+            rv = eval(r, env)
+            if not isinstance(rv, bool): raise EvalError("and requires booleans")
+            return rv
+        case Or(l, r):
+            lv = eval(l, env)
+            if not isinstance(lv, bool): raise EvalError("or requires booleans")
+            if lv: return True # Short-circuiting
+            rv = eval(r, env)
+            if not isinstance(rv, bool): raise EvalError("or requires booleans")
+            return rv
+        case Not(e):
+            ev = eval(e, env)
+            if isinstance(ev, bool): return not ev
+            raise EvalError("not requires boolean")
+        case StrConcat(l, r):
+            lv, rv = eval(l, env), eval(r, env)
+            if isinstance(lv, str) and isinstance(rv, str): return lv + rv
+            raise EvalError("concat requires strings")
+        case StrReplace(t, o, n):
+            tv, ov, nv = eval(t, env), eval(o, env), eval(n, env)
+            if not all(isinstance(x, str) for x in (tv, ov, nv)):
+                raise EvalError("replace requires strings")
+            return tv.replace(ov, nv, 1) 
+        case Letfun(fname, param, funbody, inexpr):
+            closure_val = ("recursive_closure", param, funbody, env, fname)
+            env_for_inexpr = ((fname, closure_val),) + env
+            return eval(inexpr, env_for_inexpr)
+        case App(funexpr, actual):
+            fun_val = eval(funexpr, env) # Evaluate the function expression in the current environment
 
-    if isinstance(expr, Lit):
-        return expr.value
+            if isinstance(fun_val, tuple) and fun_val[0] == "recursive_closure":
+                _, param_name, body_expr, captured_def_env, fun_name_for_recursion = fun_val
+                actual_val = eval(actual, env) # Evaluate actual argument in current (call-site) environment
 
-    elif isinstance(expr, Name):
-        if expr.name in env:
-            return env[expr.name]
-        else:
-            raise NameError(f"Name '{expr.name}' not found in environment.")
-
-    elif isinstance(expr, Add):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) is not int or type(r) is not int:
-            raise TypeError("Add requires integer operands.")
-        return l + r
-
-    elif isinstance(expr, Sub):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) is not int or type(r) is not int:
-            raise TypeError("Sub requires integer operands.")
-        return l - r
-
-    elif isinstance(expr, Mul):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) is not int or type(r) is not int:
-            raise TypeError("Mul requires integer operands.")
-        return l * r
-
-    elif isinstance(expr, Div):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) is not int or type(r) is not int:
-            raise TypeError("Div requires integer operands.")
-        if r == 0:
-            raise ZeroDivisionError("Cannot divide by zero.")
-        return l // r
-
-    elif isinstance(expr, Neg):
-        val = eval(expr.operand, env)
-        if type(val) is not int:
-            raise TypeError("Neg requires an integer.")
-        return -val
-
-    elif isinstance(expr, Eq):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) != type(r):
-            return False
-        return l == r
-
-    elif isinstance(expr, Lt):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if type(l) is not int or type(r) is not int:
-            raise TypeError("Lt requires integer operands.")
-        return l < r
-
-    elif isinstance(expr, If):
-        cond = eval(expr.conditional, env)
-        if not isinstance(cond, bool):
-            raise TypeError("If condition needs to be a boolean.")
-        if cond:
-            return eval(expr.then_b, env)
-        else:
-            return eval(expr.else_b, env)
-
-    elif isinstance(expr, Let):
-        val = eval(expr.value_expr, env)
-        new_env = env.copy()
-        new_env[expr.name] = val
-        return eval(expr.body_expr, new_env)
-
-    elif isinstance(expr, And):
-        l = eval(expr.left, env)
-        if not isinstance(l, bool):
-            raise TypeError("And requires boolean operands.")
-        if not l:
-            return False
-        r = eval(expr.right, env)
-        if not isinstance(r, bool):
-            raise TypeError("And requires boolean operands.")
-        return r
-
-    elif isinstance(expr, Or):
-        l = eval(expr.left, env)
-        if not isinstance(l, bool):
-            raise TypeError("Or requires boolean operands.")
-        if l:
-            return True
-        r = eval(expr.right, env)
-        if not isinstance(r, bool):
-            raise TypeError("Or requires boolean operands.")
-        return r
-
-    elif isinstance(expr, Not):
-        val = eval(expr.operand, env)
-        if not isinstance(val, bool):
-            raise TypeError("Not requires a boolean operand.")
-        return not val
-
-    elif isinstance(expr, StrLit):
-        return expr.value
-
-    elif isinstance(expr, StrConcat):
-        l = eval(expr.left, env)
-        r = eval(expr.right, env)
-        if not isinstance(l, str) or not isinstance(r, str):
-            raise TypeError("StrConcat requires string operands.")
-        return l + r
-
-    elif isinstance(expr, StrReplace):
-        original = eval(expr.og, env)
-        target = eval(expr.target, env)
-        replacement = eval(expr.replacement, env)
-        if not all(isinstance(v, str) for v in [original, target, replacement]):
-            raise TypeError("StrReplace requires all operands to be strings.")
-        return original.replace(target, replacement, 1)
-    
-    elif isinstance(expr,LetFun):
-        closure = (expr.param_name,expr.body_expr,env.copy())
-        new_env = env.copy()
-        new_env[expr.fun_name] = closure
-        return eval(expr.in_expr,new_env)
-    
-    elif isinstance(expr,App):
-        closure = eval(expr.fun_expr,env)
-        if not isinstance(closure,tuple) or len(closure) != 3:
-            raise TypeError("Trying to apply a non-function.")
-        param_name,body_expr,closure_env = closure
-        arg_val = eval(expr.arg_expr,env)
-        new_env = closure_env.copy()
-        new_env[param_name] = arg_val
-        return eval(body_expr,new_env)
-
-    else:
-        raise NotImplementedError(f"Unknown expression type: {type(expr)}.")
-
+                env_for_body = ((param_name, actual_val), (fun_name_for_recursion, fun_val),) + captured_def_env
+                return eval(body_expr, env_for_body)
+            elif isinstance(fun_val, tuple) and fun_val[0] == "closure": 
+                _, param_name, body_expr, captured_def_env = fun_val
+                actual_val = eval(actual, env)
+                env_for_body = ((param_name, actual_val),) + captured_def_env
+                return eval(body_expr, env_for_body)
+            else:
+                raise EvalError(f"App requires a function, got {fun_val}")
+        case _:
+            raise EvalError(f"Unknown expression: {expr}")
+        
 # run
-def run(expr: Expr) -> None:
-    result = eval(expr)
-    print(result)
+def run(expr: Any) -> None:
+    try:
+        result = eval(expr)
+        if isinstance(result, str):
+            print(f'Result: "{result}"') # Explicit quotes for strings
+        elif isinstance(result, bool):
+            print(f"Result: {str(result).lower()}") # true/false
+        else:
+            print(f"Result: {result}")
+    except EvalError as e:
+        print(f"Error: {e}")
+    except Exception as e: # Catch any other unexpected errors during eval/run
+        print(f"An unexpected error occurred: {e}")
+        import traceback
+        traceback.print_exc()
 
 # This interpreter supports string operations
 # as part of a DSL feature set. The operations include:
@@ -279,9 +270,3 @@ def run(expr: Expr) -> None:
 # manipulations.
 
 # testing the domain string operations
-
-run(StrLit("hello world!")) # prints: hello world!
-
-run(StrConcat(StrLit("hello "),StrLit("world!"))) # prints: hello world!
-
-run(StrReplace(StrLit("hello world!"), StrLit("world!"), StrLit("hello!"))) # prints: hello hello!

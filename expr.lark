@@ -1,33 +1,51 @@
 ?start: expr
 
-?expr: expr "+" expr -> add
-    | expr "-" expr -> sub
-    | expr "*" expr -> mul
-    | expr "/" expr -> div
-    | "-" expr -> neg
-    | expr "&&" expr -> and
-    | expr "||" expr -> or
-    | "!" expr -> not
-    | expr "==" expr -> eq
-    | expr "<" expr -> lt
-    | "if" expr "then" expr "else" expr -> if
-    | "let" ID "=" expr "in" expr "end" -> let
-    | "letfun" ID "(" ID ")" "=" expr "in" expr "end" -> letfun
-    | expr "(" expr ")" -> app
-    | expr "++" expr -> strconcat
-    | expr ".replace(" STRING "," STRING ")" -> strreplace
+?expr: or_expr
+
+?or_expr: or_expr "||" and_expr -> or_
+    | and_expr
+
+?and_expr: and_expr "&&" not_expr -> and_
+    | not_expr
+
+?not_expr: "!" cmp_expr -> not_
+    | cmp_expr
+
+?cmp_expr: term1 "==" term1 -> eq
+    | term1 "<" term1 -> lt
+    | term1
+
+?term1: term1 "+" term2 -> add
+    | term1 "-" term2 -> sub
+    | term1 "++" term2 -> concat
+    | term2
+
+?term2: term2 "*" un_expr -> mul
+    | term2 "/" un_expr -> div
+    | un_expr
+
+?un_expr: "-" un_expr -> neg
+    | factor_expr
+
+?factor_expr: "replace" "(" expr "," expr "," expr ")" -> replace
+    | app_expr
+
+?app_expr: app_expr "(" expr ")" -> app
     | atom
 
-?atom: NUMBER ->number
-    | STRING -> string
-    | "true" -> true
-    | "false" -> false
-    | ID -> var
+?atom: NAME -> name
+    | INT -> number
+    | ESCAPED_STRING -> string
+    | "true" -> boolean_true
+    | "false" -> boolean_false
     | "(" expr ")"
+    | "if" expr "then" expr "else" expr -> if_
+    | "let" NAME "=" expr "in" expr "end" -> let
+    | "letfun" NAME "(" NAME ")" "=" expr "in" expr "end" -> letfun
 
-
-%import common.CNAME -> ID
-%import common.NUMBER
-%import common.ESCAPED_STRING -> STRING
+%import common.CNAME -> NAME
+%import common.INT
+%import common.ESCAPED_STRING
 %import common.WS
+
 %ignore WS
