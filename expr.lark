@@ -1,0 +1,71 @@
+?start: expr
+
+
+?expr: seq_expr
+
+?seq_expr: assign_expr
+         | assign_expr ";" seq_expr -> seq
+
+?assign_expr: show_expr
+        | NAME ":=" assign_expr -> assign
+
+?show_expr: "show" assign_expr -> show
+        | if_expr
+
+?if_expr: or_expr
+        | "if" expr "then" expr "else" expr -> if_
+
+?or_expr: or_expr "||" and_expr -> or_
+        | and_expr
+
+?and_expr: and_expr "&&" not_expr -> and_
+          | not_expr
+
+?not_expr: "!" not_expr -> not_
+          | comparison_expr
+
+?comparison_expr: additive_expr_operand "==" additive_expr_operand -> eq
+                  | additive_expr_operand "<" additive_expr_operand -> lt
+                  | additive_expr_operand
+
+?additive_expr_operand: additive_expr_operand "+" multiplicative_expr_operand -> add
+                        | additive_expr_operand "-" multiplicative_expr_operand -> sub
+                        | additive_expr_operand "++" multiplicative_expr_operand -> concat
+                        | multiplicative_expr_operand
+
+?multiplicative_expr_operand: multiplicative_expr_operand "*" unary_operand -> mul
+                                | multiplicative_expr_operand "/" unary_operand -> div
+                                | unary_operand
+
+?unary_operand: "-" unary_operand -> neg  
+               | factor_expr
+
+?factor_expr: "replace" "(" expr "," expr "," expr ")" -> replace
+            | "length" "(" expr ")" -> strlen
+            | "tolower" "(" expr ")" -> tolower
+            | application_expr
+
+
+?application_expr: application_expr "(" expr ")" -> app
+                    | atom_expr
+
+?atom_expr: BOOLEAN -> boolean_literal
+          | NAME -> name
+          | SIGNED_NUMBER -> number
+          | ESCAPED_STRING -> string
+          | "(" expr ")"
+          | let_expr
+          | letfun_expr
+          | "read" -> read
+
+?let_expr: "let" NAME "=" expr "in" expr "end" -> let
+?letfun_expr: "letfun" NAME "(" NAME ")" "=" expr "in" expr "end" -> letfun
+
+BOOLEAN: "true" | "false"
+NAME: /(?!true|false|show|read|replace)[a-zA-Z_][a-zA-Z0-9_]*/
+SIGNED_NUMBER: /(?:0|[1-9][0-9]*)/
+ESCAPED_STRING: /"(?:\\.|[^"\\])*?"/
+
+%import common.WS
+
+%ignore WS
