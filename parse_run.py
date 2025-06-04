@@ -8,7 +8,7 @@ with open("expr.lark") as f:
     grammar = f.read()
     
 
-USE_EARLEY = False
+USE_EARLEY = True
 
 if USE_EARLEY:
     parser = Lark(grammar, start='expr', parser='earley', ambiguity='explicit')
@@ -95,6 +95,14 @@ class ASTBuilder(Transformer):
                 return option
         return options[0] 
 
+    def seq_chain(self,items):
+        head, *rest = items
+        if not rest:
+            return head
+        else:
+            from functools import reduce
+            return reduce(lambda a,b:Seq(a,b),rest,head)
+
 
 def just_parse(s: str):
     try:
@@ -103,11 +111,9 @@ def just_parse(s: str):
         return ast
     except UnexpectedInput as e:
         print(f"Parse error: {e}")
-        # To help debug, you can print more context:
-        # print(f"Unexpected input at line {e.line}, column {e.column}.")
-        # print(f"Expected one of: {e.expected}")
         return None
-    except Exception as e: # Catch other potential Lark errors (e.g., VisitError during transform)
+
+    except Exception as e: 
         print(f"Transformation or other error: {e}")
         import traceback
         traceback.print_exc()
