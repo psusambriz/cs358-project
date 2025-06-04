@@ -143,17 +143,20 @@ class StrReplace:
     def __str__(self) -> str:
         return f"({self.og} .replace({self.target}, {self.replacement}))"
 
+# strlen
 @dataclass 
 class StrLen:
     expr: Expr
     def __str__(self) -> str:
         return f"(length {self.expr})"
 
+# tolower
 @dataclass
 class ToLower:
     expr: Expr
     def __str__(self) -> str:
         return f"(tolower {self.expr})"
+
 # letfun
 @dataclass
 class Letfun:
@@ -186,17 +189,20 @@ class Closure:
     body: Expr
     env: Env[Value]
 
+# loc
 @dataclass
 class Loc:
     value: 'Value'
 
+# assign
 @dataclass
 class Assign:
     name: str
     expr: Expr
     def __str__(self) -> str:
         return f"({self.name} := {self.expr})"
-    
+
+# seq 
 @dataclass
 class Seq:
     first: Expr
@@ -204,12 +210,14 @@ class Seq:
     def __str__(self) -> str:
         return f"({self.first} ; {self.second})"
 
+# show
 @dataclass
 class Show:
     expr: Expr
     def __str__(self) -> str:
         return f"(show {self.expr})"
 
+# read
 @dataclass
 class Read:
     def __str__(self) -> str:
@@ -222,7 +230,6 @@ def extendEnv[V](name: str, value: V, env:Env[V]) -> Env[V]:
 def lookupEnv[V](name: str, env: Env[V]) -> (V | None) :
     '''Return the first value bound to name in the input environment env
        (or raise an exception if there is no such binding)'''
-    # exercises2b.py shows a different implementation alternative
     match env:
         case ((n,v), *rest) :
             if n == name:
@@ -434,6 +441,8 @@ def run(e: Expr) -> None:
 # 'StrLit' : represents a string literal
 # 'StrConcat' : performs string concatenation
 # 'StrReplace' : replace first occurance of a substring in a string
+# 'StrLen' : shows size of a string
+# 'ToLower' : lowercases all characters in a string
 
 # These extensions allow the interpreter to do simple string 
 # manipulations.
@@ -441,10 +450,18 @@ def run(e: Expr) -> None:
 # testing the domain string operations
 
 if __name__ == "__main__":
-    print("Demo 1: Length of input string")
-    e1 = Show(StrLen(Read()))
+    print("Demo 1: Length of a string")
+    e1 = Show(StrLen(StrLit("Hello")))
     run(e1)
 
     print("\nDemo 2: Convert string to lowercase")
     e2 = Show(ToLower(StrLit("HELLO World")))
     run(e2)
+
+    print("\nDemo 3: String concatenation")
+    e3 = Show(StrConcat(StrLit("Hello, "), StrLit("world!")))
+    run(e3)
+
+    print("\nDemo 4: Replace substring")
+    e4 = Show(StrReplace(StrLit("hello world"), StrLit("world"), StrLit("there")))
+    run(e4)
